@@ -1,0 +1,15 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+
+# Local configuration. Real connection strings and signing keys live in
+# user secrets or environment variables, never in the repository.
+appsettings.Development.json
+.env
+
+# Profile pictures written by the local file storage implementation
+uploads/
