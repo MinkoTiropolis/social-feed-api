@@ -1,0 +1,18 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: socialfeed-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      # Local development credential for a throwaway container. Override by
+      # exporting MSSQL_SA_PASSWORD before starting compose.
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-LocalDev_Passw0rd!}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
