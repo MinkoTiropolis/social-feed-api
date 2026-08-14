@@ -117,4 +117,36 @@ public class AuthService
             RefreshToken = refreshToken
         });
     }
+
+    /// <summary>
+    /// Issues a new access token for a valid refresh token. Returns null when the token is
+    /// unknown, revoked, expired, or its owner is no longer approved.
+    /// </summary>
+    public async Task<RefreshResponse?> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken)
+    {
+        var tokenHash = TokenService.HashRefreshToken(request.RefreshToken);
+        var now = DateTime.UtcNow;
+
+        var storedToken = await _db.RefreshTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
+
+        if (storedToken is null || storedToken.RevokedAt is not null || storedToken.ExpiresAt <= now)
+        {
+            return null;
+        }
+
+        // Approval can be withdrawn after a token was issued, so it is checked on every
+        // refresh rather than only at login.
+        if (storedToken.User.Status != AccountStatus.Approved)
+        {
+            return null;
+        }
+
+        return new RefreshResponse
+        {
+            AccessToken = _tokenService.CreateAccessToken(storedToken.User),
+            AccessTokenExpiresAt = now.AddMinutes(_jwtOptions.AccessTokenMinutes)
+        };
+    }
 }

@@ -74,4 +74,27 @@ public class AuthController : ControllerBase
                 });
         }
     }
+
+    /// <summary>
+    /// Exchanges a valid refresh token for a new access token.
+    /// </summary>
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh(RefreshRequest request, CancellationToken cancellationToken)
+    {
+        var response = await _authService.RefreshAsync(request, cancellationToken);
+
+        if (response is null)
+        {
+            return Unauthorized(new ProblemDetails
+            {
+                Status = StatusCodes.Status401Unauthorized,
+                Title = "Invalid refresh token",
+                Detail = "The refresh token is unknown, expired, or has been revoked."
+            });
+        }
+
+        return Ok(response);
+    }
 }
