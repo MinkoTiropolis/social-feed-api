@@ -43,5 +43,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.CreatedAt)
             .IsRequired();
+
+        // Login looks a user up by email on every attempt, and two accounts must never share
+        // one. A unique index answers both at once.
+        builder.HasIndex(u => u.Email)
+            .IsUnique();
     }
 }
