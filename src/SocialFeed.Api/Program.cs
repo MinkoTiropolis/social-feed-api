@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SocialFeed.Api;
 using SocialFeed.Data;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services;
@@ -41,6 +42,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorizationBuilder().AddSocialFeedPolicies();
+
+// The API is served from api.somedomain.com and the frontend from app.somedomain.com, which
+// are different origins, so the browser will not call this API without CORS. Origins come
+// from configuration and are named explicitly: AllowAnyOrigin would let any site on the
+// internet call the API with a user's token.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("The 'Cors:AllowedOrigins' configuration is missing.");
+
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -68,6 +83,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthentication();
 
