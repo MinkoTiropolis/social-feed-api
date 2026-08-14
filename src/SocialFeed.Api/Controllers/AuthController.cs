@@ -38,4 +38,40 @@ public class AuthController : ControllerBase
 
         return StatusCode(StatusCodes.Status201Created, response);
     }
+
+    /// <summary>
+    /// Exchanges email and password for an access token and a refresh token.
+    /// </summary>
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.LoginAsync(request, cancellationToken);
+
+        switch (result.Outcome)
+        {
+            case LoginOutcome.Success:
+                return Ok(result.Response);
+
+            case LoginOutcome.AccountPending:
+                var pending = new ProblemDetails
+                {
+                    Status = StatusCodes.Status403Forbidden,
+                    Title = "Account pending approval",
+                    Detail = "This account has been registered but is waiting for a superuser to approve it."
+                };
+                pending.Extensions["code"] = "account_pending";
+                return StatusCode(StatusCodes.Status403Forbidden, pending);
+
+            default:
+                return Unauthorized(new ProblemDetails
+                {
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Invalid credentials",
+                    Detail = "The email or password is incorrect."
+                });
+        }
+    }
 }

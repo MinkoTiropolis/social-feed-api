@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SocialFeed.Data;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services.Dtos;
@@ -10,11 +11,19 @@ public class AuthService
 {
     private readonly AppDbContext _db;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly TokenService _tokenService;
+    private readonly JwtOptions _jwtOptions;
 
-    public AuthService(AppDbContext db, IPasswordHasher<User> passwordHasher)
+    public AuthService(
+        AppDbContext db,
+        IPasswordHasher<User> passwordHasher,
+        TokenService tokenService,
+        IOptions<JwtOptions> jwtOptions)
     {
         _db = db;
         _passwordHasher = passwordHasher;
+        _tokenService = tokenService;
+        _jwtOptions = jwtOptions.Value;
     }
 
     /// <summary>
@@ -61,5 +70,51 @@ public class AuthService
             Email = user.Email,
             Status = user.Status.ToString()
         };
+    }
+
+    public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+
+        if (user is null)
+        {
+            return new LoginResult(LoginOutcome.InvalidCredentials, null);
+        }
+
+        var passwordCheck = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+
+        if (passwordCheck == PasswordVerificationResult.Failed)
+        {
+            return new LoginResult(LoginOutcome.InvalidCredentials, null);
+        }
+
+        // Deliberately after the password check. Reporting "pending" to someone who does not
+        // know the password would tell them the account exists.
+        if (user.Status != AccountStatus.Approved)
+        {
+            return new LoginResult(LoginOutcome.AccountPending, null);
+        }
+
+        var now = DateTime.UtcNow;
+        var refreshToken = TokenService.CreateRefreshToken();
+
+        _db.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = TokenService.HashRefreshToken(refreshToken),
+            CreatedAt = now,
+            ExpiresAt = now.AddDays(_jwtOptions.RefreshTokenDays)
+        });
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return new LoginResult(LoginOutcome.Success, new LoginResponse
+        {
+            AccessToken = _tokenService.CreateAccessToken(user),
+            AccessTokenExpiresAt = now.AddMinutes(_jwtOptions.AccessTokenMinutes),
+            RefreshToken = refreshToken
+        });
     }
 }
