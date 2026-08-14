@@ -35,4 +35,6 @@ public class User
     public DateTime CreatedAt { get; set; }
 
     public ICollection<Post> Posts { get; set; } = new List<Post>();
+
+    public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
 }

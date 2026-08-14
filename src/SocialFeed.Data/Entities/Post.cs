@@ -21,4 +21,6 @@ public class Post
     /// </para>
     /// </summary>
     public DateTime? DeletedAt { get; set; }
+
+    public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
 }
