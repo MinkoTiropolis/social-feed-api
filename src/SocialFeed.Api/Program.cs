@@ -3,8 +3,8 @@ using SocialFeed.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+var connectionString = builder.Configuration.GetConnectionString("SocialFeed")
+    ?? throw new InvalidOperationException("Connection string 'SocialFeed' is not configured.");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 

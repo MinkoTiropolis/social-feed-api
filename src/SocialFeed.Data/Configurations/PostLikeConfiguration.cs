@@ -15,6 +15,11 @@ public class PostLikeConfiguration : IEntityTypeConfiguration<PostLike>
         builder.Property(l => l.CreatedAt)
             .IsRequired();
 
+        // A like only exists as part of a post, so it follows the post's filter: when the post
+        // is soft deleted its likes disappear from queries too. Without this, EF warns that a
+        // required relationship points at rows the filter hides.
+        builder.HasQueryFilter(l => l.Post.DeletedAt == null);
+
         // Hard deleting a post takes its likes with it, so no orphan rows survive the purge.
         builder.HasOne(l => l.Post)
             .WithMany(p => p.Likes)
