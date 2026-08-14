@@ -149,4 +149,26 @@ public class AuthService
             AccessTokenExpiresAt = now.AddMinutes(_jwtOptions.AccessTokenMinutes)
         };
     }
+
+    /// <summary>
+    /// Revokes the refresh token so the session cannot be extended. The access token already
+    /// issued stays valid until it expires, which is why it is short lived.
+    /// </summary>
+    public async Task LogoutAsync(int userId, LogoutRequest request, CancellationToken cancellationToken)
+    {
+        var tokenHash = TokenService.HashRefreshToken(request.RefreshToken);
+
+        // Matching on the user as well as the hash means a caller cannot revoke someone
+        // else's session even if they somehow obtained the token.
+        var storedToken = await _db.RefreshTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && t.UserId == userId, cancellationToken);
+
+        if (storedToken is null || storedToken.RevokedAt is not null)
+        {
+            return;
+        }
+
+        storedToken.RevokedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+    }
 }
