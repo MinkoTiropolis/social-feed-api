@@ -37,4 +37,6 @@ public class User
     public ICollection<Post> Posts { get; set; } = new List<Post>();
 
     public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
+
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
