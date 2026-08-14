@@ -29,7 +29,8 @@ public class RefreshToken
     public DateTime ExpiresAt { get; set; }
 
     /// <summary>
-    /// Set when the token is revoked, either by logout or by being rotated on use.
+    /// Set when the user logs out. A revoked token can no longer be exchanged for a new
+    /// access token.
     /// </summary>
     public DateTime? RevokedAt { get; set; }
 }
