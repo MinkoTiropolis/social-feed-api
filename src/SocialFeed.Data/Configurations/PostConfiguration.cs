@@ -10,6 +10,11 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
     {
         builder.HasKey(p => p.Id);
 
+        // Every query against Posts silently gets "AND DeletedAt IS NULL" added, so a soft
+        // deleted post disappears from the feed and from every read endpoint without each
+        // query having to remember. Restoring a post has to opt out with IgnoreQueryFilters().
+        builder.HasQueryFilter(p => p.DeletedAt == null);
+
         builder.Property(p => p.Content)
             .IsRequired()
             .HasMaxLength(280);
