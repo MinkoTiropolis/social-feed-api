@@ -33,4 +33,6 @@ public class User
     public AccountStatus Status { get; set; } = AccountStatus.Pending;
 
     public DateTime CreatedAt { get; set; }
+
+    public ICollection<Post> Posts { get; set; } = new List<Post>();
 }
