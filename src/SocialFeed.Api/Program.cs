@@ -24,6 +24,11 @@ builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<PostService>();
 
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.Configure<PostRetentionOptions>(builder.Configuration.GetSection(PostRetentionOptions.SectionName));
+builder.Services.AddScoped<PurgeExpiredPostsService>();
+builder.Services.AddHostedService<PurgeExpiredPostsWorker>();
+
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("The 'Jwt' configuration section is missing.");
 
