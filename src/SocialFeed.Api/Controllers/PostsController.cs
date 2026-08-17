@@ -39,16 +39,42 @@ public class PostsController : ControllerBase
     {
         var post = await _postService.GetByIdAsync(id, User.GetUserId(), cancellationToken);
 
-        if (post is null)
-        {
-            return NotFound(new ProblemDetails
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "Post not found",
-                Detail = $"No post exists with id {id}."
-            });
-        }
+        return post is null ? PostNotFound(id) : Ok(post);
+    }
 
-        return Ok(post);
+    /// <summary>
+    /// Likes a post. Calling it more than once is not an error.
+    /// </summary>
+    [HttpPost("{id:int}/like")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Like(int id, CancellationToken cancellationToken)
+    {
+        var liked = await _postService.LikeAsync(id, User.GetUserId(), cancellationToken);
+
+        return liked ? NoContent() : PostNotFound(id);
+    }
+
+    /// <summary>
+    /// Removes a like. Calling it when the post was not liked is not an error.
+    /// </summary>
+    [HttpDelete("{id:int}/like")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Unlike(int id, CancellationToken cancellationToken)
+    {
+        var unliked = await _postService.UnlikeAsync(id, User.GetUserId(), cancellationToken);
+
+        return unliked ? NoContent() : PostNotFound(id);
+    }
+
+    private NotFoundObjectResult PostNotFound(int id)
+    {
+        return NotFound(new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = "Post not found",
+            Detail = $"No post exists with id {id}."
+        });
     }
 }

@@ -57,4 +57,62 @@ public class PostService
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Likes a post. Returns false when the post does not exist or is soft deleted. Liking a
+    /// post twice succeeds and leaves a single row.
+    /// </summary>
+    public async Task<bool> LikeAsync(int postId, int userId, CancellationToken cancellationToken)
+    {
+        if (!await _db.Posts.AnyAsync(p => p.Id == postId, cancellationToken))
+        {
+            return false;
+        }
+
+        _db.PostLikes.Add(new PostLike
+        {
+            PostId = postId,
+            UserId = userId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // The composite primary key rejected a second like from the same user. That is
+            // the outcome the caller asked for, so it is a success, not an error. Doing it
+            // this way rather than checking first also removes the race between the two.
+            _db.ChangeTracker.Clear();
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Removes a like. Returns false when the post does not exist or is soft deleted.
+    /// Unliking a post that was not liked succeeds and changes nothing.
+    /// </summary>
+    public async Task<bool> UnlikeAsync(int postId, int userId, CancellationToken cancellationToken)
+    {
+        if (!await _db.Posts.AnyAsync(p => p.Id == postId, cancellationToken))
+        {
+            return false;
+        }
+
+        var like = await _db.PostLikes
+            .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId, cancellationToken);
+
+        if (like is null)
+        {
+            return true;
+        }
+
+        _db.PostLikes.Remove(like);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
 }
