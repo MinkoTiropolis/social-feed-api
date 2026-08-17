@@ -28,4 +28,17 @@ public class MeController : ControllerBase
 
         return me is null ? NotFound() : Ok(me);
     }
+
+    /// <summary>
+    /// Updates the signed-in user's name, description and profile picture. Email and password
+    /// cannot be changed here.
+    /// </summary>
+    [HttpPatch]
+    [ProducesResponseType(typeof(MeResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Update(UpdateMeRequest request, CancellationToken cancellationToken)
+    {
+        var me = await _profileService.UpdateMeAsync(User.GetUserId(), request, cancellationToken);
+
+        return me is null ? NotFound() : Ok(me);
+    }
 }

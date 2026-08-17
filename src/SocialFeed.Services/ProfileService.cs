@@ -41,4 +41,37 @@ public class ProfileService
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Updates the signed-in user's name, description and profile picture. Fields left null
+    /// keep their current value.
+    /// </summary>
+    public async Task<MeResponse?> UpdateMeAsync(int userId, UpdateMeRequest request, CancellationToken cancellationToken)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        if (request.Name is not null)
+        {
+            user.Name = request.Name.Trim();
+        }
+
+        if (request.Description is not null)
+        {
+            user.Description = request.Description.Trim();
+        }
+
+        if (request.ProfilePictureUrl is not null)
+        {
+            user.ProfilePicturePath = request.ProfilePictureUrl.Trim();
+        }
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return await GetMeAsync(userId, cancellationToken);
+    }
 }
