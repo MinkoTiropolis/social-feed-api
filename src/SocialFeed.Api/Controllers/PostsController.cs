@@ -85,6 +85,49 @@ public class PostsController : ControllerBase
         return likers is null ? PostNotFound(id) : Ok(likers);
     }
 
+    /// <summary>
+    /// Soft deletes a post. Only its author or a superuser may do this.
+    /// </summary>
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var result = await _postService.SoftDeleteAsync(id, User.GetUserId(), User.IsSuperuser(), cancellationToken);
+
+        return MapResult(result, id);
+    }
+
+    /// <summary>
+    /// Restores a soft deleted post. Only its author or a superuser may do this.
+    /// </summary>
+    [HttpPost("{id:int}/restore")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Restore(int id, CancellationToken cancellationToken)
+    {
+        var result = await _postService.RestoreAsync(id, User.GetUserId(), User.IsSuperuser(), cancellationToken);
+
+        return MapResult(result, id);
+    }
+
+    private IActionResult MapResult(PostMutationResult result, int id)
+    {
+        return result switch
+        {
+            PostMutationResult.Success => NoContent(),
+            PostMutationResult.Forbidden => StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Not allowed",
+                Detail = "Only the author of a post or a superuser can do this."
+            }),
+            _ => PostNotFound(id)
+        };
+    }
+
     private NotFoundObjectResult PostNotFound(int id)
     {
         return NotFound(new ProblemDetails

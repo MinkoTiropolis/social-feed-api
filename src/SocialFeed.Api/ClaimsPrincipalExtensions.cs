@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using SocialFeed.Data.Entities;
 
 namespace SocialFeed.Api;
 
@@ -11,5 +12,10 @@ public static class ClaimsPrincipalExtensions
     public static int GetUserId(this ClaimsPrincipal principal)
     {
         return int.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    }
+
+    public static bool IsSuperuser(this ClaimsPrincipal principal)
+    {
+        return principal.IsInRole(nameof(UserRole.Superuser));
     }
 }

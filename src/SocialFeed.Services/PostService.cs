@@ -117,6 +117,59 @@ public class PostService
     }
 
     /// <summary>
+    /// Soft deletes a post by stamping DeletedAt. The row stays in the database and can be
+    /// restored until the purge job removes it.
+    /// </summary>
+    public async Task<PostMutationResult> SoftDeleteAsync(int postId, int currentUserId, bool isSuperuser, CancellationToken cancellationToken)
+    {
+        var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId, cancellationToken);
+
+        if (post is null)
+        {
+            return PostMutationResult.NotFound;
+        }
+
+        if (post.AuthorId != currentUserId && !isSuperuser)
+        {
+            return PostMutationResult.Forbidden;
+        }
+
+        post.DeletedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return PostMutationResult.Success;
+    }
+
+    /// <summary>
+    /// Restores a soft deleted post by clearing DeletedAt.
+    /// <para>
+    /// This is one of only two places that call IgnoreQueryFilters: the post it needs to find
+    /// is precisely the one the global filter is hiding.
+    /// </para>
+    /// </summary>
+    public async Task<PostMutationResult> RestoreAsync(int postId, int currentUserId, bool isSuperuser, CancellationToken cancellationToken)
+    {
+        var post = await _db.Posts
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == postId && p.DeletedAt != null, cancellationToken);
+
+        if (post is null)
+        {
+            return PostMutationResult.NotFound;
+        }
+
+        if (post.AuthorId != currentUserId && !isSuperuser)
+        {
+            return PostMutationResult.Forbidden;
+        }
+
+        post.DeletedAt = null;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return PostMutationResult.Success;
+    }
+
+    /// <summary>
     /// Lists the users who liked a post, most recent first. Returns null when the post does
     /// not exist or is soft deleted.
     /// <para>
