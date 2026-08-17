@@ -1,0 +1,44 @@
+using Microsoft.EntityFrameworkCore;
+using SocialFeed.Data;
+using SocialFeed.Services.Dtos;
+
+namespace SocialFeed.Services;
+
+public class ProfileService
+{
+    private readonly AppDbContext _db;
+
+    public ProfileService(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    /// <summary>
+    /// Returns the signed-in user's profile with both totals.
+    /// <para>
+    /// The counts are part of the same projection, so this is a single round trip to the
+    /// database and nothing is summed in memory. Soft deleted posts fall out on their own:
+    /// the global query filter applies to the Posts navigation as well, so a deleted post
+    /// stops counting towards either total without this query mentioning it.
+    /// </para>
+    /// </summary>
+    public async Task<MeResponse?> GetMeAsync(int userId, CancellationToken cancellationToken)
+    {
+        return await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new MeResponse
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Name = u.Name,
+                Description = u.Description,
+                ProfilePictureUrl = u.ProfilePicturePath,
+                Role = u.Role.ToString(),
+                CreatedAt = u.CreatedAt,
+                TotalPosts = u.Posts.Count(),
+                TotalLikes = u.Posts.SelectMany(p => p.Likes).Count()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+}

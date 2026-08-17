@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SocialFeed.Services;
@@ -108,9 +107,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout(LogoutRequest request, CancellationToken cancellationToken)
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-        await _authService.LogoutAsync(userId, request, cancellationToken);
+        await _authService.LogoutAsync(User.GetUserId(), request, cancellationToken);
 
         // Always 204, whether or not the token was still active. Logging out twice is not an
         // error, and the response must not reveal whether a token existed.
