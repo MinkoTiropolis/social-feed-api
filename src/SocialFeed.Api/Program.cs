@@ -23,6 +23,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<PostService>();
+builder.Services.AddScoped<FeedService>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.Configure<PostRetentionOptions>(builder.Configuration.GetSection(PostRetentionOptions.SectionName));
