@@ -115,4 +115,50 @@ public class PostService
 
         return true;
     }
+
+    /// <summary>
+    /// Lists the users who liked a post, most recent first. Returns null when the post does
+    /// not exist or is soft deleted.
+    /// <para>
+    /// Offset paging is fine here, unlike in the feed: this list is short, it is opened
+    /// deliberately rather than scrolled endlessly, and a like arriving mid-read shifts one
+    /// row rather than corrupting an infinite scroll.
+    /// </para>
+    /// </summary>
+    public async Task<LikersResponse?> GetLikersAsync(int postId, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        if (!await _db.Posts.AnyAsync(p => p.Id == postId, cancellationToken))
+        {
+            return null;
+        }
+
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var likes = _db.PostLikes.Where(l => l.PostId == postId);
+
+        var total = await likes.CountAsync(cancellationToken);
+
+        var items = await likes
+            .AsNoTracking()
+            .OrderByDescending(l => l.CreatedAt)
+            .ThenBy(l => l.UserId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(l => new AuthorSummary
+            {
+                Id = l.User.Id,
+                Name = l.User.Name,
+                Description = l.User.Description,
+                ProfilePictureUrl = l.User.ProfilePicturePath
+            })
+            .ToListAsync(cancellationToken);
+
+        return new LikersResponse
+        {
+            Items = items,
+            Total = total,
+            HasMore = page * pageSize < total
+        };
+    }
 }

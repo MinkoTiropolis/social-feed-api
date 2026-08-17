@@ -68,6 +68,23 @@ public class PostsController : ControllerBase
         return unliked ? NoContent() : PostNotFound(id);
     }
 
+    /// <summary>
+    /// Lists the users who liked a post, most recent first.
+    /// </summary>
+    [HttpGet("{id:int}/likes")]
+    [ProducesResponseType(typeof(LikersResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLikers(
+        int id,
+        CancellationToken cancellationToken,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var likers = await _postService.GetLikersAsync(id, page, pageSize, cancellationToken);
+
+        return likers is null ? PostNotFound(id) : Ok(likers);
+    }
+
     private NotFoundObjectResult PostNotFound(int id)
     {
         return NotFound(new ProblemDetails
