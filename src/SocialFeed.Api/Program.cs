@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SocialFeed.Api;
 using SocialFeed.Data;
 using SocialFeed.Data.Entities;
@@ -70,7 +71,38 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "sharebook API",
+        Version = "v1",
+        Description = "JSON API for a social feed. Log in via /auth/login, then paste the accessToken into Authorize."
+    });
+
+    // Puts the Authorize button in the UI so protected endpoints can actually be called
+    // from Swagger rather than only from a separate HTTP client.
+    var scheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "The accessToken returned by /auth/login. Swagger adds the Bearer prefix.",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+    };
+
+    options.AddSecurityDefinition("Bearer", scheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement { [scheme] = Array.Empty<string>() });
+
+    // Surfaces the XML comments already written on the controllers and DTOs as endpoint
+    // and field descriptions.
+    foreach (var xml in Directory.GetFiles(AppContext.BaseDirectory, "SocialFeed.*.xml"))
+    {
+        options.IncludeXmlComments(xml);
+    }
+});
 
 var app = builder.Build();
 
