@@ -54,6 +54,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorizationBuilder().AddSocialFeedPolicies();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 // The API is served from api.somedomain.com and the frontend from app.somedomain.com, which
 // are different origins, so the browser will not call this API without CORS. Origins come
 // from configuration and are named explicitly: AllowAnyOrigin would let any site on the
@@ -115,6 +118,9 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
     await DatabaseSeeder.SeedAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
 }
+
+// First in the pipeline so it catches whatever the stages below it throw.
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
