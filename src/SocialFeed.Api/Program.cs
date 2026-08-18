@@ -102,3 +102,9 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+/// <summary>
+/// Named so the integration tests can boot this application through WebApplicationFactory.
+/// Top-level statements generate an internal Program class, which the test project cannot see.
+/// </summary>
+public partial class Program;

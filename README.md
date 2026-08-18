@@ -71,6 +71,30 @@ approval reasons, then approve it as the superuser, without registering first.
 | DELETE | `/posts/{id}` | author or superuser |
 | POST | `/posts/{id}/restore` | author or superuser |
 
+## Tests
+
+```bash
+dotnet test
+```
+
+The SQL Server container must be running first. The integration tests boot the real
+application through `WebApplicationFactory` against their own database
+(`SocialFeed_IntegrationTests`), dropped and recreated per run, so they exercise the
+same migrations, cascades and query filters as production rather than a substitute
+provider that would pass without proving anything.
+
+**Unit tests** cover the retention boundary — a post soft deleted 11 and 10 days ago is
+purged, 9 days is not — using an injected fixed clock. That rule is the reason
+`TimeProvider` is injected rather than calling `DateTime.UtcNow`; otherwise verifying it
+would mean waiting ten days. They also assert that purging a post removes its likes,
+which is a foreign-key rule rather than anything the service does.
+
+**Integration tests** cover the full journey — register, blocked as pending, superuser
+approves, login succeeds, create a post, like it, see it in the feed, soft delete it,
+see it excluded, restore it, see it return — plus that a user cannot delete someone
+else's post, that the feed rejects anonymous callers, and that logging out stops the
+refresh token from working.
+
 ## Design decisions
 
 ### Two origins, so bearer tokens rather than cookies
