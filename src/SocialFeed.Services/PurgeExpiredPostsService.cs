@@ -13,7 +13,7 @@ namespace SocialFeed.Services;
 /// boundary. Calling the clock directly would make that untestable.
 /// </para>
 /// </summary>
-public class PurgeExpiredPostsService
+public class PurgeExpiredPostsService : IPurgeExpiredPostsService
 {
     private readonly AppDbContext _db;
     private readonly TimeProvider _timeProvider;

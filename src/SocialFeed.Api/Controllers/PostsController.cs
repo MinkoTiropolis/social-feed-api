@@ -10,9 +10,9 @@ namespace SocialFeed.Api.Controllers;
 [Authorize]
 public class PostsController : ControllerBase
 {
-    private readonly PostService _postService;
+    private readonly IPostService _postService;
 
-    public PostsController(PostService postService)
+    public PostsController(IPostService postService)
     {
         _postService = postService;
     }

@@ -10,9 +10,9 @@ namespace SocialFeed.Api.Controllers;
 [Authorize]
 public class MeController : ControllerBase
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public MeController(ProfileService profileService)
+    public MeController(IProfileService profileService)
     {
         _profileService = profileService;
     }

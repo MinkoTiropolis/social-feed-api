@@ -36,7 +36,7 @@ public class PurgeExpiredPostsWorker : BackgroundService
                 // and therefore its own context, which is disposed when the run ends.
                 using var scope = _scopeFactory.CreateScope();
 
-                var purgeService = scope.ServiceProvider.GetRequiredService<PurgeExpiredPostsService>();
+                var purgeService = scope.ServiceProvider.GetRequiredService<IPurgeExpiredPostsService>();
 
                 await purgeService.PurgeAsync(stoppingToken);
             }

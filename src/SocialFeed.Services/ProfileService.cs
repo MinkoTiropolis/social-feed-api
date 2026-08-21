@@ -4,7 +4,7 @@ using SocialFeed.Services.Dtos;
 
 namespace SocialFeed.Services;
 
-public class ProfileService
+public class ProfileService : IProfileService
 {
     private readonly AppDbContext _db;
 

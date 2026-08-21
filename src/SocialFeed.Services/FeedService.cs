@@ -4,7 +4,7 @@ using SocialFeed.Services.Dtos;
 
 namespace SocialFeed.Services;
 
-public class FeedService
+public class FeedService : IFeedService
 {
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 100;

@@ -10,9 +10,9 @@ namespace SocialFeed.Api.Controllers;
 [Authorize]
 public class FeedController : ControllerBase
 {
-    private readonly FeedService _feedService;
+    private readonly IFeedService _feedService;
 
-    public FeedController(FeedService feedService)
+    public FeedController(IFeedService feedService)
     {
         _feedService = feedService;
     }

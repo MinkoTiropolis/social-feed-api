@@ -19,16 +19,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
-builder.Services.AddScoped<TokenService>();
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<AdminService>();
-builder.Services.AddScoped<ProfileService>();
-builder.Services.AddScoped<PostService>();
-builder.Services.AddScoped<FeedService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IFeedService, FeedService>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.Configure<PostRetentionOptions>(builder.Configuration.GetSection(PostRetentionOptions.SectionName));
-builder.Services.AddScoped<PurgeExpiredPostsService>();
+builder.Services.AddScoped<IPurgeExpiredPostsService, PurgeExpiredPostsService>();
 builder.Services.AddHostedService<PurgeExpiredPostsWorker>();
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()

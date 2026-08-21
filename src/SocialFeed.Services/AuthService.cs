@@ -7,17 +7,17 @@ using SocialFeed.Services.Dtos;
 
 namespace SocialFeed.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
     private readonly IPasswordHasher<User> _passwordHasher;
-    private readonly TokenService _tokenService;
+    private readonly ITokenService _tokenService;
     private readonly JwtOptions _jwtOptions;
 
     public AuthService(
         AppDbContext db,
         IPasswordHasher<User> passwordHasher,
-        TokenService tokenService,
+        ITokenService tokenService,
         IOptions<JwtOptions> jwtOptions)
     {
         _db = db;
@@ -98,12 +98,12 @@ public class AuthService
         }
 
         var now = DateTime.UtcNow;
-        var refreshToken = TokenService.CreateRefreshToken();
+        var refreshToken = _tokenService.CreateRefreshToken();
 
         _db.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
-            TokenHash = TokenService.HashRefreshToken(refreshToken),
+            TokenHash = _tokenService.HashRefreshToken(refreshToken),
             CreatedAt = now,
             ExpiresAt = now.AddDays(_jwtOptions.RefreshTokenDays)
         });
@@ -124,7 +124,7 @@ public class AuthService
     /// </summary>
     public async Task<RefreshResponse?> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken)
     {
-        var tokenHash = TokenService.HashRefreshToken(request.RefreshToken);
+        var tokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
         var now = DateTime.UtcNow;
 
         var storedToken = await _db.RefreshTokens
@@ -156,7 +156,7 @@ public class AuthService
     /// </summary>
     public async Task LogoutAsync(int userId, LogoutRequest request, CancellationToken cancellationToken)
     {
-        var tokenHash = TokenService.HashRefreshToken(request.RefreshToken);
+        var tokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
 
         // Matching on the user as well as the hash means a caller cannot revoke someone
         // else's session even if they somehow obtained the token.

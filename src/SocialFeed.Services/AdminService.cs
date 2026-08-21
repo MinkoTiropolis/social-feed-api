@@ -5,7 +5,7 @@ using SocialFeed.Services.Dtos;
 
 namespace SocialFeed.Services;
 
-public class AdminService
+public class AdminService : IAdminService
 {
     private readonly AppDbContext _db;
 
