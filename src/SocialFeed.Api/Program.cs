@@ -9,6 +9,7 @@ using SocialFeed.Data;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services;
 using SocialFeed.Services.Interfaces;
+using SocialFeed.Services.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 

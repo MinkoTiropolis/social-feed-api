@@ -1,4 +1,4 @@
-namespace SocialFeed.Services;
+namespace SocialFeed.Services.Options;
 
 public class PostRetentionOptions
 {

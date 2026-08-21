@@ -3,6 +3,7 @@ using SocialFeed.Data;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services.Dtos;
 using SocialFeed.Services.Interfaces;
+using SocialFeed.Services.Results;
 
 namespace SocialFeed.Services;
 

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SocialFeed.Data;
 using SocialFeed.Services.Interfaces;
+using SocialFeed.Services.Options;
 
 namespace SocialFeed.Services;
 

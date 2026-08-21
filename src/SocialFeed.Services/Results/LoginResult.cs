@@ -1,6 +1,6 @@
 using SocialFeed.Services.Dtos;
 
-namespace SocialFeed.Services;
+namespace SocialFeed.Services.Results;
 
 public enum LoginOutcome
 {

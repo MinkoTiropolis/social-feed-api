@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services.Interfaces;
+using SocialFeed.Services.Options;
 
 namespace SocialFeed.Services;
 

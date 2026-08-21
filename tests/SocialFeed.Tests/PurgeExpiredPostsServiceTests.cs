@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SocialFeed.Data;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services;
+using SocialFeed.Services.Options;
 
 namespace SocialFeed.Tests;
 

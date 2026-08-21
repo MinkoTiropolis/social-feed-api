@@ -1,4 +1,5 @@
 using SocialFeed.Services.Dtos;
+using SocialFeed.Services.Results;
 
 namespace SocialFeed.Services.Interfaces;
 

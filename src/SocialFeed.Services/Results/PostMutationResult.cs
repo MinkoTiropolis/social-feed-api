@@ -1,4 +1,4 @@
-namespace SocialFeed.Services;
+namespace SocialFeed.Services.Results;
 
 public enum PostMutationResult
 {

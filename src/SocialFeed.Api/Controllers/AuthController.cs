@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SocialFeed.Services;
 using SocialFeed.Services.Dtos;
 using SocialFeed.Services.Interfaces;
+using SocialFeed.Services.Results;
 
 namespace SocialFeed.Api.Controllers;
 
