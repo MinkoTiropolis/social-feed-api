@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SocialFeed.Data;
 
 namespace SocialFeed.Tests;
 
@@ -22,12 +26,13 @@ public class ApiFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Development");
 
-        builder.ConfigureAppConfiguration((_, configuration) =>
+        builder.ConfigureTestServices(services =>
         {
-            configuration.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:SocialFeed"] = TestConnectionString
-            });
+            services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<DbContextOptions>();
+            services.RemoveAll<AppDbContext>();
+
+            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(TestConnectionString));
         });
     }
 
