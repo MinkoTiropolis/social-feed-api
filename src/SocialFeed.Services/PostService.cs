@@ -86,8 +86,6 @@ public class PostService : IPostService
         }
         catch (DbUpdateException)
         {
-            // The composite key rejected a duplicate like, which is the outcome the caller
-            // wanted. Detach only the rejected row rather than clearing the whole context.
             entry.State = EntityState.Detached;
         }
 

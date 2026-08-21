@@ -8,8 +8,7 @@ using SocialFeed.Services.Options;
 namespace SocialFeed.Services;
 
 /// <summary>
-/// Removes data that has outlived its purpose: posts past the retention window, and refresh
-/// tokens that can no longer be exchanged.
+/// Removes data that has outlived its purpose
 /// </summary>
 public class PurgeService : IPurgeService
 {
@@ -31,8 +30,7 @@ public class PurgeService : IPurgeService
     }
 
     /// <summary>
-    /// Deletes expired posts and returns how many rows went. Their likes go with them through
-    /// the cascade configured on the foreign key, so no orphan rows are left behind.
+    /// Deletes expired posts and returns how many rows went
     /// </summary>
     public async Task<int> PurgeExpiredPostsAsync(CancellationToken cancellationToken)
     {
@@ -52,9 +50,7 @@ public class PurgeService : IPurgeService
     }
 
     /// <summary>
-    /// Deletes refresh tokens that are past their expiry or already revoked. Both are unusable
-    /// for a refresh, so removing them changes no behaviour and stops the table growing without
-    /// bound.
+    /// Deletes refresh tokens that are past their expiry or already revoked.
     /// </summary>
     public async Task<int> PurgeExpiredRefreshTokensAsync(CancellationToken cancellationToken)
     {

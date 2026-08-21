@@ -26,8 +26,6 @@ public class PurgeWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // PeriodicTimer rejects a period of zero or less, which would kill the worker at
-        // startup over a configuration typo. An hour is the shortest sensible floor.
         var interval = TimeSpan.FromHours(Math.Max(_options.RunIntervalHours, 1));
 
         using var timer = new PeriodicTimer(interval);
