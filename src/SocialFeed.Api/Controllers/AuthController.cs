@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SocialFeed.Services;
 using SocialFeed.Services.Dtos;
+using SocialFeed.Services.Interfaces;
 
 namespace SocialFeed.Api.Controllers;
 

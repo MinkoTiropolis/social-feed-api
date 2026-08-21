@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SocialFeed.Data;
 using SocialFeed.Data.Entities;
 using SocialFeed.Services.Dtos;
+using SocialFeed.Services.Interfaces;
 
 namespace SocialFeed.Services;
 

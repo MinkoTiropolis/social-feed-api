@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using SocialFeed.Services;
+using SocialFeed.Services.Interfaces;
 
 namespace SocialFeed.Api;
 

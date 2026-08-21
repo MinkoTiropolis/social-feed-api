@@ -1,6 +1,6 @@
 using SocialFeed.Data.Entities;
 
-namespace SocialFeed.Services;
+namespace SocialFeed.Services.Interfaces;
 
 public interface ITokenService
 {

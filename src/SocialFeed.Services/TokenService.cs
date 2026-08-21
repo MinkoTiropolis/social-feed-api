@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SocialFeed.Data.Entities;
+using SocialFeed.Services.Interfaces;
 
 namespace SocialFeed.Services;
 

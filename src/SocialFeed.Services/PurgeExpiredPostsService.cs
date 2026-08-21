@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SocialFeed.Data;
+using SocialFeed.Services.Interfaces;
 
 namespace SocialFeed.Services;
 

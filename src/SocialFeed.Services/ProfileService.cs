@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SocialFeed.Data;
 using SocialFeed.Services.Dtos;
+using SocialFeed.Services.Interfaces;
 
 namespace SocialFeed.Services;
 
