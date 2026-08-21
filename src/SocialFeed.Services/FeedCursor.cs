@@ -29,22 +29,31 @@ public record FeedCursor(DateTime CreatedAt, int Id)
             return null;
         }
 
-        try
-        {
-            var parts = Encoding.UTF8.GetString(Convert.FromBase64String(value)).Split(':');
+        // Base64 decodes to at most three quarters of the input length.
+        var buffer = new byte[value.Length];
 
-            if (parts.Length == 2
-                && long.TryParse(parts[0], out var ticks)
-                && int.TryParse(parts[1], out var id))
-            {
-                return new FeedCursor(new DateTime(ticks, DateTimeKind.Utc), id);
-            }
-        }
-        catch (FormatException)
+        if (!Convert.TryFromBase64String(value, buffer, out var byteCount))
         {
-            // Not valid base64.
+            return null;
         }
 
-        return null;
+        var parts = Encoding.UTF8.GetString(buffer, 0, byteCount).Split(':');
+
+        if (parts.Length != 2
+            || !long.TryParse(parts[0], out var ticks)
+            || !int.TryParse(parts[1], out var id))
+        {
+            return null;
+        }
+
+        // A tick count can be a valid long and still be far outside the range DateTime
+        // accepts, which would throw. The cursor comes from a query string, so that has to
+        // be a rejected value rather than an exception.
+        if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+        {
+            return null;
+        }
+
+        return new FeedCursor(new DateTime(ticks, DateTimeKind.Utc), id);
     }
 }

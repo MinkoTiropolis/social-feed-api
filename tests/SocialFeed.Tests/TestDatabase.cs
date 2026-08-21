@@ -6,11 +6,6 @@ namespace SocialFeed.Tests;
 
 /// <summary>
 /// An empty database for one test, held in memory.
-/// <para>
-/// SQLite rather than the in-memory provider because these tests exercise real SQL: the
-/// purge uses ExecuteDelete, and the cascade that removes a post's likes is a foreign key
-/// rule the database enforces. The in-memory provider supports neither.
-/// </para>
 /// </summary>
 public sealed class TestDatabase : IDisposable
 {

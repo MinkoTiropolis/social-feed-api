@@ -31,8 +31,7 @@ public class MeController : ControllerBase
     }
 
     /// <summary>
-    /// Updates the signed-in user's name, description and profile picture. Email and password
-    /// cannot be changed here.
+    /// Updates the signed-in user's name, description and profile picture. Email and password cannot be changed here.
     /// </summary>
     [HttpPatch]
     [ProducesResponseType(typeof(MeResponse), StatusCodes.Status200OK)]

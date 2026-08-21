@@ -7,11 +7,6 @@ namespace SocialFeed.Tests;
 
 /// <summary>
 /// Boots the real API for integration tests, pointed at its own database.
-/// <para>
-/// It runs against the SQL Server container rather than a substitute provider, so the tests
-/// exercise the same migrations, cascades and query filters the application uses in
-/// production. That means "docker compose up" has to have been run first.
-/// </para>
 /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>
 {
@@ -20,8 +15,6 @@ public class ApiFactory : WebApplicationFactory<Program>
 
     public ApiFactory()
     {
-        // Start from nothing every run. The application creates and seeds the database on
-        // startup, so dropping it here is enough to guarantee a known state.
         DropTestDatabase();
     }
 

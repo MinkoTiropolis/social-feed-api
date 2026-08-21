@@ -16,9 +16,7 @@ public class MeResponse
 
     public DateTime CreatedAt { get; set; }
 
-    /// <summary>Number of the user's posts. Soft deleted posts are not counted.</summary>
     public int TotalPosts { get; set; }
 
-    /// <summary>Likes received across all of the user's posts, again excluding deleted ones.</summary>
     public int TotalLikes { get; set; }
 }

@@ -19,8 +19,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Registers a new account. The account is created pending and cannot log in until a
-    /// superuser approves it.
+    /// Registers a new account. The account is created pending and cannot log in until a superuser approves it.
     /// </summary>
     [HttpPost("register")]
     [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status201Created)]
@@ -111,8 +110,6 @@ public class AuthController : ControllerBase
     {
         await _authService.LogoutAsync(User.GetUserId(), request, cancellationToken);
 
-        // Always 204, whether or not the token was still active. Logging out twice is not an
-        // error, and the response must not reveal whether a token existed.
         return NoContent();
     }
 }

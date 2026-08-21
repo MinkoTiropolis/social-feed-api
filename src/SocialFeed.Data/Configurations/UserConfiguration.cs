@@ -28,9 +28,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.ProfilePicturePath)
             .HasMaxLength(400);
 
-        // Stored as text rather than as the underlying number so the data is readable when
-        // browsing the tables directly, and so reordering the enum cannot silently change
-        // the meaning of existing rows.
         builder.Property(u => u.Role)
             .IsRequired()
             .HasConversion<string>()
@@ -44,8 +41,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
-        // Login looks a user up by email on every attempt, and two accounts must never share
-        // one. A unique index answers both at once.
         builder.HasIndex(u => u.Email)
             .IsUnique();
     }

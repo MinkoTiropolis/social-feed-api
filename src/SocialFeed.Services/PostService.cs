@@ -28,14 +28,11 @@ public class PostService : IPostService
         _db.Posts.Add(post);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Read it back through the same projection every other endpoint uses, so a newly
-        // created post looks identical to the same post seen later in the feed.
         return (await GetByIdAsync(post.Id, authorId, cancellationToken))!;
     }
 
     /// <summary>
-    /// Returns a single post, or null when it does not exist or has been soft deleted. The
-    /// global query filter handles the deleted case, so it needs no mention here.
+    /// Returns a single post, or null when it does not exist or has been soft deleted
     /// </summary>
     public async Task<PostResponse?> GetByIdAsync(int postId, int currentUserId, CancellationToken cancellationToken)
     {
@@ -84,9 +81,6 @@ public class PostService : IPostService
         }
         catch (DbUpdateException)
         {
-            // The composite primary key rejected a second like from the same user. That is
-            // the outcome the caller asked for, so it is a success, not an error. Doing it
-            // this way rather than checking first also removes the race between the two.
             _db.ChangeTracker.Clear();
         }
 
@@ -144,10 +138,6 @@ public class PostService : IPostService
 
     /// <summary>
     /// Restores a soft deleted post by clearing DeletedAt.
-    /// <para>
-    /// This is one of only two places that call IgnoreQueryFilters: the post it needs to find
-    /// is precisely the one the global filter is hiding.
-    /// </para>
     /// </summary>
     public async Task<PostMutationResult> RestoreAsync(int postId, int currentUserId, bool isSuperuser, CancellationToken cancellationToken)
     {
@@ -172,13 +162,7 @@ public class PostService : IPostService
     }
 
     /// <summary>
-    /// Lists the users who liked a post, most recent first. Returns null when the post does
-    /// not exist or is soft deleted.
-    /// <para>
-    /// Offset paging is fine here, unlike in the feed: this list is short, it is opened
-    /// deliberately rather than scrolled endlessly, and a like arriving mid-read shifts one
-    /// row rather than corrupting an infinite scroll.
-    /// </para>
+    /// Lists the users who liked a post, most recent first. Returns null when the post does not exist or is soft deleted.
     /// </summary>
     public async Task<LikersResponse?> GetLikersAsync(int postId, int page, int pageSize, CancellationToken cancellationToken)
     {

@@ -26,8 +26,6 @@ public static class DatabaseSeeder
         var daniel = CreateUser(passwordHasher, "daniel@sharebook.local", "User123!", "Daniel Goshev", "Software Developer, Waracle", UserRole.User, AccountStatus.Approved, now);
         var maria = CreateUser(passwordHasher, "maria@sharebook.local", "User123!", "Maria Petrova", "Product Designer, Waracle", UserRole.User, AccountStatus.Approved, now);
 
-        // Left pending on purpose: it lets a reviewer see a blocked login and then the
-        // superuser approval flow without registering an account first.
         var pending = CreateUser(passwordHasher, "pending@sharebook.local", "User123!", "Georgi Ivanov", "QA Engineer, Waracle", UserRole.User, AccountStatus.Pending, now);
 
         db.Users.AddRange(admin, daniel, maria, pending);

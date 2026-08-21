@@ -31,10 +31,6 @@ public class AdminService : IAdminService
             .ToListAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Approves a pending account. Returns false when no such user exists. Approving an
-    /// already approved account succeeds and changes nothing, so a repeated call is safe.
-    /// </summary>
     public async Task<bool> ApproveUserAsync(int userId, CancellationToken cancellationToken)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);

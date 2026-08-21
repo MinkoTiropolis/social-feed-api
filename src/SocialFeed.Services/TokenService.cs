@@ -41,18 +41,13 @@ public class TokenService : ITokenService
     }
 
     /// <summary>
-    /// Creates a random refresh token. This is the value handed to the client; only its hash
-    /// is stored.
+    /// Creates a random refresh token.
     /// </summary>
     public string CreateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
 
-    /// <summary>
-    /// SHA-256 is right here rather than a slow password hash: the token is 32 bytes of
-    /// randomness, so it cannot be guessed, and refresh happens on every session.
-    /// </summary>
     public string HashRefreshToken(string token)
     {
         return Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(token)));

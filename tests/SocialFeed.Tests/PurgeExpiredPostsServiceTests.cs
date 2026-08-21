@@ -12,10 +12,6 @@ public class PurgeExpiredPostsServiceTests
 {
     private static readonly DateTime Now = new(2026, 8, 17, 12, 0, 0, DateTimeKind.Utc);
 
-    /// <summary>
-    /// The rule is "hard delete posts soft deleted 10 or more days ago", so 10 is inside the
-    /// purge and 9 is not. These three cases are the entire point of injecting a clock.
-    /// </summary>
     [Theory]
     [InlineData(11, true)]
     [InlineData(10, true)]
@@ -86,8 +82,6 @@ public class PurgeExpiredPostsServiceTests
 
         await CreateService(db.Context).PurgeAsync(CancellationToken.None);
 
-        // The cascade is a database rule, not something the service does, so this asserts the
-        // foreign key is configured the way FR-D7 needs.
         Assert.Equal(0, await db.Context.PostLikes.IgnoreQueryFilters().CountAsync());
     }
 
@@ -107,7 +101,6 @@ public class PurgeExpiredPostsServiceTests
 
         await db.Context.SaveChangesAsync();
 
-        // Not purged under the default ten days, purged under two.
         Assert.Equal(0, await CreateService(db.Context).PurgeAsync(CancellationToken.None));
         Assert.Equal(1, await CreateService(db.Context, retentionDays: 2).PurgeAsync(CancellationToken.None));
     }

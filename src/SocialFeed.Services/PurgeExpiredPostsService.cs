@@ -9,11 +9,6 @@ namespace SocialFeed.Services;
 
 /// <summary>
 /// Removes posts that were soft deleted longer ago than the retention window.
-/// <para>
-/// The time comes from an injected <see cref="TimeProvider"/> rather than DateTime.UtcNow, so
-/// a test can place a post exactly 9, 10 or 11 days in the past and assert what happens at the
-/// boundary. Calling the clock directly would make that untestable.
-/// </para>
 /// </summary>
 public class PurgeExpiredPostsService : IPurgeExpiredPostsService
 {
@@ -42,8 +37,6 @@ public class PurgeExpiredPostsService : IPurgeExpiredPostsService
     {
         var cutoff = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-_options.RetentionDays);
 
-        // IgnoreQueryFilters is required: the rows to delete are exactly the ones the global
-        // filter hides.
         var purged = await _db.Posts
             .IgnoreQueryFilters()
             .Where(p => p.DeletedAt != null && p.DeletedAt <= cutoff)

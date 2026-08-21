@@ -28,14 +28,10 @@ public class PurgeExpiredPostsWorker : BackgroundService
     {
         using var timer = new PeriodicTimer(TimeSpan.FromHours(_options.RunIntervalHours));
 
-        // Runs once at startup, then on every tick.
         do
         {
             try
             {
-                // A BackgroundService is a singleton and AppDbContext is scoped, so the
-                // context cannot be injected into this class. Each run gets its own scope,
-                // and therefore its own context, which is disposed when the run ends.
                 using var scope = _scopeFactory.CreateScope();
 
                 var purgeService = scope.ServiceProvider.GetRequiredService<IPurgeExpiredPostsService>();
@@ -48,7 +44,6 @@ public class PurgeExpiredPostsWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                // A failed run must not take the worker down; the next tick tries again.
                 _logger.LogError(ex, "The scheduled purge failed.");
             }
         }

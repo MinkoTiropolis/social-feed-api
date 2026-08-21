@@ -61,9 +61,6 @@ public class AuthService : IAuthService
         }
         catch (DbUpdateException)
         {
-            // Two registrations for the same address can pass the check above at the same
-            // time. The unique index on Email rejects the second one, and it means exactly
-            // what the check meant: the address is taken.
             return null;
         }
 
@@ -93,8 +90,6 @@ public class AuthService : IAuthService
             return new LoginResult(LoginOutcome.InvalidCredentials, null);
         }
 
-        // Deliberately after the password check. Reporting "pending" to someone who does not
-        // know the password would tell them the account exists.
         if (user.Status != AccountStatus.Approved)
         {
             return new LoginResult(LoginOutcome.AccountPending, null);
@@ -139,8 +134,6 @@ public class AuthService : IAuthService
             return null;
         }
 
-        // Approval can be withdrawn after a token was issued, so it is checked on every
-        // refresh rather than only at login.
         if (storedToken.User.Status != AccountStatus.Approved)
         {
             return null;
@@ -155,14 +148,12 @@ public class AuthService : IAuthService
 
     /// <summary>
     /// Revokes the refresh token so the session cannot be extended. The access token already
-    /// issued stays valid until it expires, which is why it is short lived.
+    /// issued stays valid until it expires.
     /// </summary>
     public async Task LogoutAsync(int userId, LogoutRequest request, CancellationToken cancellationToken)
     {
         var tokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
 
-        // Matching on the user as well as the hash means a caller cannot revoke someone
-        // else's session even if they somehow obtained the token.
         var storedToken = await _db.RefreshTokens
             .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && t.UserId == userId, cancellationToken);
 

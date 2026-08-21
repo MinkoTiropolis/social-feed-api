@@ -16,12 +16,6 @@ public class ProfileService : IProfileService
 
     /// <summary>
     /// Returns the signed-in user's profile with both totals.
-    /// <para>
-    /// The counts are part of the same projection, so this is a single round trip to the
-    /// database and nothing is summed in memory. Soft deleted posts fall out on their own:
-    /// the global query filter applies to the Posts navigation as well, so a deleted post
-    /// stops counting towards either total without this query mentioning it.
-    /// </para>
     /// </summary>
     public async Task<MeResponse?> GetMeAsync(int userId, CancellationToken cancellationToken)
     {
@@ -44,8 +38,7 @@ public class ProfileService : IProfileService
     }
 
     /// <summary>
-    /// Updates the signed-in user's name, description and profile picture. Fields left null
-    /// keep their current value.
+    /// Updates the signed-in user's name, description and profile picture. Fields left null keep their current value.
     /// </summary>
     public async Task<MeResponse?> UpdateMeAsync(int userId, UpdateMeRequest request, CancellationToken cancellationToken)
     {

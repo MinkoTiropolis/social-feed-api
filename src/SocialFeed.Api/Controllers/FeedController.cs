@@ -19,8 +19,7 @@ public class FeedController : ControllerBase
     }
 
     /// <summary>
-    /// Returns a page of all published posts, newest first. Omit the cursor for the first
-    /// page, then pass back the nextCursor from the previous response.
+    /// Returns a page of all published posts, newest first. Omit the cursor for the first page, then pass back the nextCursor from the previous response.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(FeedResponse), StatusCodes.Status200OK)]

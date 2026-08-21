@@ -1,8 +1,5 @@
 namespace SocialFeed.Services.Dtos;
 
-/// <summary>
-/// The author fields each feed card shows: avatar, name, and the line underneath it.
-/// </summary>
 public class AuthorSummary
 {
     public int Id { get; set; }

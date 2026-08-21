@@ -12,9 +12,5 @@ public class PostResponse
 
     public int LikeCount { get; set; }
 
-    /// <summary>
-    /// Whether the caller has liked this post. The UI needs it to draw the button as "Like"
-    /// or "Liked".
-    /// </summary>
     public bool LikedByMe { get; set; }
 }
