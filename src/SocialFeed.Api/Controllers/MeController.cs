@@ -27,7 +27,7 @@ public class MeController : ControllerBase
     {
         var me = await _profileService.GetMeAsync(User.GetUserId(), cancellationToken);
 
-        return me is null ? NotFound() : Ok(me);
+        return me is null ? UserNotFound() : Ok(me);
     }
 
     /// <summary>
@@ -39,6 +39,16 @@ public class MeController : ControllerBase
     {
         var me = await _profileService.UpdateMeAsync(User.GetUserId(), request, cancellationToken);
 
-        return me is null ? NotFound() : Ok(me);
+        return me is null ? UserNotFound() : Ok(me);
+    }
+
+    private NotFoundObjectResult UserNotFound()
+    {
+        return NotFound(new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = "User not found",
+            Detail = "The account this token belongs to no longer exists."
+        });
     }
 }

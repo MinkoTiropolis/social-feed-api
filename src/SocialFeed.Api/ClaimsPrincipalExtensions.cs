@@ -11,7 +11,13 @@ public static class ClaimsPrincipalExtensions
     /// </summary>
     public static int GetUserId(this ClaimsPrincipal principal)
     {
-        return int.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var value = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Only reachable if a token passed validation without the claim this API always
+        // issues. Failing with a named error beats a null reference deep in a controller.
+        return int.TryParse(value, out var userId)
+            ? userId
+            : throw new InvalidOperationException("The access token does not carry a valid user id.");
     }
 
     public static bool IsSuperuser(this ClaimsPrincipal principal)

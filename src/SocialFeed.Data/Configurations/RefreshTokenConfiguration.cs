@@ -20,6 +20,10 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.Property(t => t.ExpiresAt)
             .IsRequired();
 
+        // Refresh and logout both look a token up by its hash, so without this every one of
+        // those calls scans the table.
+        builder.HasIndex(t => t.TokenHash);
+
         builder.HasOne(t => t.User)
             .WithMany(u => u.RefreshTokens)
             .HasForeignKey(t => t.UserId)

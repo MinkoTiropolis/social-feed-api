@@ -13,10 +13,12 @@ namespace SocialFeed.Services;
 public class TokenService : ITokenService
 {
     private readonly JwtOptions _options;
+    private readonly TimeProvider _timeProvider;
 
-    public TokenService(IOptions<JwtOptions> options)
+    public TokenService(IOptions<JwtOptions> options, TimeProvider timeProvider)
     {
         _options = options.Value;
+        _timeProvider = timeProvider;
     }
 
     public string CreateAccessToken(User user)
@@ -34,7 +36,7 @@ public class TokenService : ITokenService
             issuer: _options.Issuer,
             audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_options.AccessTokenMinutes),
+            expires: _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_options.AccessTokenMinutes),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(token);

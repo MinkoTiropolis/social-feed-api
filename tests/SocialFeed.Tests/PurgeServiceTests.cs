@@ -8,7 +8,7 @@ using SocialFeed.Services.Options;
 
 namespace SocialFeed.Tests;
 
-public class PurgeExpiredPostsServiceTests
+public class PurgeServiceTests
 {
     private static readonly DateTime Now = new(2026, 8, 17, 12, 0, 0, DateTimeKind.Utc);
 
@@ -31,7 +31,7 @@ public class PurgeExpiredPostsServiceTests
 
         await db.Context.SaveChangesAsync();
 
-        var purged = await CreateService(db.Context).PurgeAsync(CancellationToken.None);
+        var purged = await CreateService(db.Context).PurgeExpiredPostsAsync(CancellationToken.None);
 
         var remaining = await db.Context.Posts.IgnoreQueryFilters().CountAsync();
 
@@ -54,7 +54,7 @@ public class PurgeExpiredPostsServiceTests
 
         await db.Context.SaveChangesAsync();
 
-        var purged = await CreateService(db.Context).PurgeAsync(CancellationToken.None);
+        var purged = await CreateService(db.Context).PurgeExpiredPostsAsync(CancellationToken.None);
 
         Assert.Equal(0, purged);
         Assert.Equal(1, await db.Context.Posts.CountAsync());
@@ -80,7 +80,7 @@ public class PurgeExpiredPostsServiceTests
         await db.Context.SaveChangesAsync();
         Assert.Equal(1, await db.Context.PostLikes.IgnoreQueryFilters().CountAsync());
 
-        await CreateService(db.Context).PurgeAsync(CancellationToken.None);
+        await CreateService(db.Context).PurgeExpiredPostsAsync(CancellationToken.None);
 
         Assert.Equal(0, await db.Context.PostLikes.IgnoreQueryFilters().CountAsync());
     }
@@ -101,8 +101,49 @@ public class PurgeExpiredPostsServiceTests
 
         await db.Context.SaveChangesAsync();
 
-        Assert.Equal(0, await CreateService(db.Context).PurgeAsync(CancellationToken.None));
-        Assert.Equal(1, await CreateService(db.Context, retentionDays: 2).PurgeAsync(CancellationToken.None));
+        Assert.Equal(0, await CreateService(db.Context).PurgeExpiredPostsAsync(CancellationToken.None));
+        Assert.Equal(1, await CreateService(db.Context, retentionDays: 2).PurgeExpiredPostsAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Purge_removes_refresh_tokens_that_can_no_longer_be_used()
+    {
+        using var db = new TestDatabase();
+        var user = AddAuthor(db.Context);
+
+        db.Context.RefreshTokens.AddRange(
+            new RefreshToken { User = user, TokenHash = "expired", CreatedAt = Now.AddDays(-30), ExpiresAt = Now.AddDays(-1) },
+            new RefreshToken { User = user, TokenHash = "revoked", CreatedAt = Now.AddDays(-1), ExpiresAt = Now.AddDays(6), RevokedAt = Now.AddHours(-1) },
+            new RefreshToken { User = user, TokenHash = "active", CreatedAt = Now.AddDays(-1), ExpiresAt = Now.AddDays(6) });
+
+        await db.Context.SaveChangesAsync();
+
+        var purged = await CreateService(db.Context).PurgeExpiredRefreshTokensAsync(CancellationToken.None);
+
+        var remaining = await db.Context.RefreshTokens.Select(t => t.TokenHash).ToListAsync();
+
+        Assert.Equal(2, purged);
+        Assert.Equal(new[] { "active" }, remaining);
+    }
+
+    [Fact]
+    public async Task Purge_leaves_a_usable_refresh_token_alone()
+    {
+        using var db = new TestDatabase();
+        var user = AddAuthor(db.Context);
+
+        db.Context.RefreshTokens.Add(new RefreshToken
+        {
+            User = user,
+            TokenHash = "still-good",
+            CreatedAt = Now,
+            ExpiresAt = Now.AddDays(7)
+        });
+
+        await db.Context.SaveChangesAsync();
+
+        Assert.Equal(0, await CreateService(db.Context).PurgeExpiredRefreshTokensAsync(CancellationToken.None));
+        Assert.Equal(1, await db.Context.RefreshTokens.CountAsync());
     }
 
     private static User AddAuthor(AppDbContext context)
@@ -121,12 +162,12 @@ public class PurgeExpiredPostsServiceTests
         return author;
     }
 
-    private static PurgeExpiredPostsService CreateService(AppDbContext context, int retentionDays = 10)
+    private static PurgeService CreateService(AppDbContext context, int retentionDays = 10)
     {
-        return new PurgeExpiredPostsService(
+        return new PurgeService(
             context,
             new FixedTimeProvider(Now),
             Options.Create(new PostRetentionOptions { RetentionDays = retentionDays }),
-            NullLogger<PurgeExpiredPostsService>.Instance);
+            NullLogger<PurgeService>.Instance);
     }
 }

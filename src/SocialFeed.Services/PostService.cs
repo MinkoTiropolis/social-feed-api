@@ -9,11 +9,16 @@ namespace SocialFeed.Services;
 
 public class PostService : IPostService
 {
-    private readonly AppDbContext _db;
+    public const int DefaultLikersPageSize = 20;
+    public const int MaxLikersPageSize = 100;
 
-    public PostService(AppDbContext db)
+    private readonly AppDbContext _db;
+    private readonly TimeProvider _timeProvider;
+
+    public PostService(AppDbContext db, TimeProvider timeProvider)
     {
         _db = db;
+        _timeProvider = timeProvider;
     }
 
     public async Task<PostResponse> CreateAsync(int authorId, CreatePostRequest request, CancellationToken cancellationToken)
@@ -22,7 +27,7 @@ public class PostService : IPostService
         {
             AuthorId = authorId,
             Content = request.Content.Trim(),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         _db.Posts.Add(post);
@@ -68,11 +73,11 @@ public class PostService : IPostService
             return false;
         }
 
-        _db.PostLikes.Add(new PostLike
+        var entry = _db.PostLikes.Add(new PostLike
         {
             PostId = postId,
             UserId = userId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.GetUtcNow().UtcDateTime
         });
 
         try
@@ -81,7 +86,9 @@ public class PostService : IPostService
         }
         catch (DbUpdateException)
         {
-            _db.ChangeTracker.Clear();
+            // The composite key rejected a duplicate like, which is the outcome the caller
+            // wanted. Detach only the rejected row rather than clearing the whole context.
+            entry.State = EntityState.Detached;
         }
 
         return true;
@@ -130,7 +137,7 @@ public class PostService : IPostService
             return PostMutationResult.Forbidden;
         }
 
-        post.DeletedAt = DateTime.UtcNow;
+        post.DeletedAt = _timeProvider.GetUtcNow().UtcDateTime;
         await _db.SaveChangesAsync(cancellationToken);
 
         return PostMutationResult.Success;
@@ -172,7 +179,7 @@ public class PostService : IPostService
         }
 
         page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, 100);
+        pageSize = Math.Clamp(pageSize, 1, MaxLikersPageSize);
 
         var likes = _db.PostLikes.Where(l => l.PostId == postId);
 

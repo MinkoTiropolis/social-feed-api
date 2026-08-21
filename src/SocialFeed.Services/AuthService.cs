@@ -16,17 +16,20 @@ public class AuthService : IAuthService
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly JwtOptions _jwtOptions;
+    private readonly TimeProvider _timeProvider;
 
     public AuthService(
         AppDbContext db,
         IPasswordHasher<User> passwordHasher,
         ITokenService tokenService,
-        IOptions<JwtOptions> jwtOptions)
+        IOptions<JwtOptions> jwtOptions,
+        TimeProvider timeProvider)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _jwtOptions = jwtOptions.Value;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -48,7 +51,7 @@ public class AuthService : IAuthService
             Description = request.Description?.Trim(),
             Role = UserRole.User,
             Status = AccountStatus.Pending,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
@@ -95,7 +98,7 @@ public class AuthService : IAuthService
             return new LoginResult(LoginOutcome.AccountPending, null);
         }
 
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
         var refreshToken = _tokenService.CreateRefreshToken();
 
         _db.RefreshTokens.Add(new RefreshToken
@@ -123,7 +126,7 @@ public class AuthService : IAuthService
     public async Task<RefreshResponse?> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken)
     {
         var tokenHash = _tokenService.HashRefreshToken(request.RefreshToken);
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
 
         var storedToken = await _db.RefreshTokens
             .Include(t => t.User)
@@ -162,7 +165,7 @@ public class AuthService : IAuthService
             return;
         }
 
-        storedToken.RevokedAt = DateTime.UtcNow;
+        storedToken.RevokedAt = _timeProvider.GetUtcNow().UtcDateTime;
         await _db.SaveChangesAsync(cancellationToken);
     }
 }

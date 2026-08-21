@@ -8,20 +8,21 @@ using SocialFeed.Services.Options;
 namespace SocialFeed.Services;
 
 /// <summary>
-/// Removes posts that were soft deleted longer ago than the retention window.
+/// Removes data that has outlived its purpose: posts past the retention window, and refresh
+/// tokens that can no longer be exchanged.
 /// </summary>
-public class PurgeExpiredPostsService : IPurgeExpiredPostsService
+public class PurgeService : IPurgeService
 {
     private readonly AppDbContext _db;
     private readonly TimeProvider _timeProvider;
     private readonly PostRetentionOptions _options;
-    private readonly ILogger<PurgeExpiredPostsService> _logger;
+    private readonly ILogger<PurgeService> _logger;
 
-    public PurgeExpiredPostsService(
+    public PurgeService(
         AppDbContext db,
         TimeProvider timeProvider,
         IOptions<PostRetentionOptions> options,
-        ILogger<PurgeExpiredPostsService> logger)
+        ILogger<PurgeService> logger)
     {
         _db = db;
         _timeProvider = timeProvider;
@@ -33,7 +34,7 @@ public class PurgeExpiredPostsService : IPurgeExpiredPostsService
     /// Deletes expired posts and returns how many rows went. Their likes go with them through
     /// the cascade configured on the foreign key, so no orphan rows are left behind.
     /// </summary>
-    public async Task<int> PurgeAsync(CancellationToken cancellationToken)
+    public async Task<int> PurgeExpiredPostsAsync(CancellationToken cancellationToken)
     {
         var cutoff = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-_options.RetentionDays);
 
@@ -46,6 +47,24 @@ public class PurgeExpiredPostsService : IPurgeExpiredPostsService
             "Purge removed {PurgedCount} post(s) soft deleted before {Cutoff:u}.",
             purged,
             cutoff);
+
+        return purged;
+    }
+
+    /// <summary>
+    /// Deletes refresh tokens that are past their expiry or already revoked. Both are unusable
+    /// for a refresh, so removing them changes no behaviour and stops the table growing without
+    /// bound.
+    /// </summary>
+    public async Task<int> PurgeExpiredRefreshTokensAsync(CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+        var purged = await _db.RefreshTokens
+            .Where(t => t.ExpiresAt <= now || t.RevokedAt != null)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        _logger.LogInformation("Purge removed {PurgedCount} expired or revoked refresh token(s).", purged);
 
         return purged;
     }

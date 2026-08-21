@@ -30,8 +30,8 @@ builder.Services.AddScoped<IFeedService, FeedService>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.Configure<PostRetentionOptions>(builder.Configuration.GetSection(PostRetentionOptions.SectionName));
-builder.Services.AddScoped<IPurgeExpiredPostsService, PurgeExpiredPostsService>();
-builder.Services.AddHostedService<PurgeExpiredPostsWorker>();
+builder.Services.AddScoped<IPurgeService, PurgeService>();
+builder.Services.AddHostedService<PurgeWorker>();
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("The 'Jwt' configuration section is missing.");
